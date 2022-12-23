@@ -1,0 +1,86 @@
+
+<h4 class="pt-4">Thông tin</h4>
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl(`/user/${theUser['id']}/edit`) %>">
+			<i class="fas fa-edit"></i> Sửa
+		</a>
+
+		<% if (theUser.deactivate_time == null) { %>
+			<a class="btn btn-danger" href="<%= utils.makeUrl(`/user/${theUser['id']}/deactivate`) %>">
+				<i class="fas fa-lock"></i> Khoá
+			</a>
+		<% } else { %>
+			<a class="btn btn-success" href="<%= utils.makeUrl(`/user/${theUser['id']}/reactivate`) %>">
+				<i class="fas fa-unlock"></i> Mở khoá
+			</a>
+		<% } %>
+	</div>
+</div>
+
+<% if (theUser.deactivate_time != null) { %>
+	<p class="alert alert-warning">Tài khoản đang bị khoá.</p>
+<% } %>
+
+<table class="table">
+	<tr>
+		<td class="w-25">Tên đăng nhập</td>
+		<td class="w-75"><%= theUser.login %></td>
+	</tr>
+	<tr>
+		<td>Họ tên</td>
+		<td><%= theUser.full_name %></td>
+	</tr>
+	<tr>
+		<td>Email</td>
+		<td><%- theUser.email ? `<a href="mailto:${theUser.email}">${theUser.email}</a>` : '' %></td>
+	</tr>	
+	<tr>
+		<td>Bộ phận</td>
+		<td>
+			<% if (theUser.divisions.length == 0) { %>
+				(Không thuộc bộ phận nào)
+			<% } else { %>
+				<%- theUser.divisions.map(d => `<a href="${utils.makeUrl('/division/'+d.id)}">${d.name}</a>`).join(', ') %>
+			<% } %>
+		</td>
+	</tr>
+	<tr>
+		<td>Nhóm tài khoản</td>
+		<td>
+			<% if (theUser.groups.length == 0) { %>
+				(Không thuộc nhóm nào)
+			<% } else { %>
+				<%- theUser.groups.map(g => `<a href="${utils.makeUrl('/user-group/'+g.id)}">${g.name}</a>`).join(', ') %>
+			<% } %>
+		</td>
+	</tr>
+	<tr>
+		<td>Quyền</td>
+		<td>
+			<% const gp = utils.USER_PERMISSIONS.filter(p => theUser.perm[p.name]);
+			if (gp.length == 0) { %>
+				(Chưa được cấp quyền nào)
+			<% } else { %>
+				<%= gp.map(p => p.desc).join(', ') %>
+			<% } %>
+		</td>
+	</tr>
+	<tr>
+		<td>Thời gian tạo</td>
+		<td><%= moment(theUser.create_time).format(config.timeFormat.moment) %></td>
+	</tr>
+	<tr>
+		<td>Lần đăng nhập cuối</td>
+		<td><%= theUser.last_login ? moment(theUser.last_login).format(config.timeFormat.moment) : '(chưa)' %></td>
+	</tr>
+
+	<% if (theUser.deactivate_time) { %> 
+		<tr>
+			<td>Thời gian khoá</td>
+			<td><%= moment(theUser.deactivate_time).format(config.timeFormat.moment) %></td>
+		</tr>
+	<% } %>
+</table>
+
+

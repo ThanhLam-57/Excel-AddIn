@@ -1,0 +1,49 @@
+
+<h4 class="pt-4">Thông tin</h4>
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl(`/division/${division['id']}/edit`) %>">
+			<i class="fas fa-edit"></i> Sửa
+		</a>
+
+		<% if (utils.hasPermission(ctx, 'perm_administration')) { %>
+			<button type="button" class="btn btn-danger" onclick="ConfirmDialogForUrl('Bạn muốn xoá bộ phận?', '<%= utils.makeUrl(`/division/${division['id']}/delete`) %>')">
+				<i class="fas fa-trash"></i> Xoá
+			</button>
+		<% } %>
+	</div>
+</div>
+
+<table class="table">
+	<tr>
+		<td class="w-25">Tên</td>
+		<td class="w-75"><%= division.name %></td>
+	</tr>
+	<tr>
+		<td>Mô tả</td>
+		<td><%= division.description %></td>
+	</tr>
+	<tr>
+		<td>Loại</td>
+		<td><%= utils.divisionTypeName(division.type) %></td>
+	</tr>
+
+	<% if (division.type == utils.DIVISION_TYPES.EXECUTION) { %>
+		<tr>
+			<td>Các công trình</td>
+			<td>
+				<% if (division.projects.length == 0) { %>
+					(Không có)
+				<% } else { %>
+					<%- division.projects.map(e => `<a href="${utils.makeUrl('/project/' + e.id)}">${e.name}</a>`).join(', ') %>
+				<% } %>
+			</td>
+		</tr>
+	<% } %>
+</table>
+
+<h4 class="pt-4">Danh sách tài khoản</h4>
+
+<%- include('inc/print-user-list', { list: userList }) %>
+
+

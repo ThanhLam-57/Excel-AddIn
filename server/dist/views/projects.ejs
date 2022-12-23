@@ -1,0 +1,50 @@
+
+<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+	<div class="btn-toolbar" role="toolbar">
+		<div class="btn-group mb-2">
+			<a class="btn btn-secondary" href="<%= utils.makeUrl('/project/add') %>">
+				<i class="fas fa-plus-circle"></i> Tạo mới
+			</a>
+		</div>
+	</div>
+<% } %>
+
+
+<% if (projects.length == 0) { %>
+	<p class="alert alert-warning">Không có công trình nào.</p>
+<% } else { %>
+	<%	let currentYear = -1;
+		for (const item of projects) {
+			if (item['year'] != currentYear) {
+				if (currentYear != -1) {
+					%>
+					</div>
+					<%
+				}
+
+				%>
+				<h4 class="pt-4">Năm <%= item['year'] ?? 'chưa xác định' %></h4>
+				<div class="list-group">
+				<%
+
+				currentYear = item['year'];
+			}
+	
+			%>
+			<a class="list-group-item list-group-item-action flex-column align-items-start" href="<%= utils.makeUrl(`/project/${item['id']}`) %>">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1"><%= item.name %></h5>
+				</div>
+				<p><%= item.description %></p>
+			</a>
+			<%
+		}
+
+		%>
+		</div>
+		<%
+
+	%>
+<% } %>
+
+

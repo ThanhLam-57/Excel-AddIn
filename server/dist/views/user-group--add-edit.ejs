@@ -1,0 +1,31 @@
+
+<%- include('inc/print-error-list', { errors }) %>
+
+<div class="row">
+	<form id="the-form" method="post" class="col-md-8 col-lg-6">
+		<input type="hidden" name="submitted" value="1" />
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="name">Tên nhóm:</label>
+			<input id="name" type="text" class="form-control" name="name" value="<%= params.name ? params.name : '' %>" autofocus />
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="description">Mô tả:</label>
+			<input id="description" type="text" class="form-control" name="description" value="<%= params.description ? params.description : '' %>" autofocus />
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold">Phân quyền cho các tài khoản trong nhóm:</label>
+			<% for (const p of utils.USER_PERMISSIONS) { %>
+				<div class="form-check form-switch">
+					<input type="checkbox" class="form-check-input" id="<%= p.name %>" name="<%= p.name %>" value="ON" <%= params.perm[p.name] ? 'checked' : '' %>>
+					<label class="form-check-label" for="<%= p.name %>"><%= p.desc %></label>
+				</div>
+			<% } %>
+		</div>
+
+		<button type="submit" class="btn btn-primary"><%= edit ? 'Cập nhật' : 'Tạo nhóm' %></button>
+		<button type="button" class="btn btn-secondary" onclick="javascript:history.go(-1)">Quay về</button>
+	</form>
+</div>

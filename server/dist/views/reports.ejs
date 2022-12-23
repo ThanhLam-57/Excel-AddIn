@@ -1,0 +1,46 @@
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl('/report/export') %>">
+			<i class="fas fa-plus-circle"></i> Xuất báo cáo mới
+		</a>
+	</div>
+</div>
+
+
+<% if (reports.length == 0) { %>
+	<p class="alert alert-warning">Không có báo cáo nào.</p>
+<% } else { %>
+	<div class="list-group">
+		<% for (const item of reports) { %>
+			<div class="list-group-item list-group-item-action flex-column align-items-start">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1"><%= item['title'] %>
+						<a class="btn btn-sm btn-success" href="<%= utils.makeUrl(`/report/${item['id']}/download`) %>" data-bs-toggle="tooltip" title="Tải về"><i class="fas fa-download"></i></a>
+						<% if (utils.hasPermission(ctx, 'perm_administration')) { %>
+							<button class="btn btn-sm btn-danger" onclick="DeleteReport(<%= item['id'] %>)" data-bs-toggle="tooltip" title="Xoá"><i class="fas fa-trash"></i></button>
+						<% } %>
+					</h5>
+				</div>
+				<p><%= item.description %></p>
+				<p class="mb-0">Ngày xuất: <%= moment(item['create_time']).format('YYYY/MM/DD HH:mm:ss') %></p>
+				<p class="mb-1">Người xuất: <a href="<%= utils.makeUrl(`/user/${item['creator']}`) %>"><%= item['cname'] %></a></p>
+			</div>
+		<% } %>
+	</div>
+<% } %>
+
+
+<script>
+
+function DeleteReport(id) {
+	ConfirmDialog('Bạn chắc chắn muốn xoá báo cáo này?', yes => {
+		if (!yes) return;
+
+		kajax({
+			method: 'post',
+			url: `<%= utils.makeUrl('/report') %>/${id}/delete`
+		}, () => location.reload(true));
+	});
+}
+
+</script>

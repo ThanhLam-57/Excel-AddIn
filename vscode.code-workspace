@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"debug.javascript.warnOnLongPrediction": false,
+		"git.ignoreLimitWarning": true
+	}
+}

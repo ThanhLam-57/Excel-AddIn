@@ -1,0 +1,211 @@
+<link href="<%= utils.makeUrl('/lib/dist/handsontable.full.min.css') %>" rel="stylesheet" media="screen">
+
+<button id = "saveBtn"><i class="far fa-save"></i></button>
+<button id="outdentBtn"><i class="fas fa-outdent"></i></button>
+<button id= "indentBtn"><i class="fas fa-indent"></i></button>
+
+<p></p>
+<div id="hot"></div>
+
+<script src="<%= utils.makeUrl('/lib/dist/handsontable.full.min.js') %>"></script>
+<script src="<%= utils.makeUrl('/lib/dist/language/all.min.js') %>"></script>
+<!--script src="<%= utils.makeUrl('/lib/hotkeys.min.js') %>"></script-->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
+
+<script> 
+
+    let currentRow = 0, currentCol = 0, maxID = -1;
+    var hotElement = document.querySelector('#hot');
+    var saveBtn = document.querySelector('#saveBtn');
+    // Styling text
+    function styling(level, value, td, col){
+        switch(level){
+			case 1: 
+                //$('span').addClass('sheet-level1').text(value).appendTo(td);
+                $('<span>').addClass('sheet-level1 ').html(value).appendTo(td);
+				break;
+			case 2:
+                $('<span>').addClass('sheet-level2').html(value).appendTo(td);
+				break;
+			case 3:
+                $('<span>').addClass(`sheet-level3${col == 2 ? ' sheet-col-ten' : ''}`).html(value).appendTo(td);
+				break;
+			default:
+                $('<span>').addClass(`sheet-level4${col == 2 ? ' sheet-col-ten' : ''}`).html(value).appendTo(td);
+		}
+    }
+
+    // custom renderer
+    var nameStyling = function (instance, td, row, col, prop, value, cellProperties) {
+		// ignore header
+		while (td.firstChild) {
+			td.removeChild(td.firstChild);
+        }
+        let level = instance.getDataAtCell(row, 1);
+        if(typeof(level) == 'string') level = parseInt(level);
+		styling(level, value, td, col)
+    }
+    
+    var unitStyling = function (instance, td, row, col, prop, value, cellProperties) {
+		// ignore header
+		while (td.firstChild) {
+			td.removeChild(td.firstChild);
+        }
+        let level = instance.getDataAtCell(row, 1);
+        if(typeof(level) == 'string') level = parseInt(level);
+
+        if(value != null)
+            value = value.replace(/\^([23])/g, '<sup>$1</sup>')
+
+		styling(level, value, td, col)
+	}
+    
+    var dataStyling = function (instance, td, row, col, prop, value, cellProperties) {
+		// ignore header
+		while (td.firstChild) {
+			td.removeChild(td.firstChild);
+        }
+        let level = instance.getDataAtCell(row, 1);
+        if(typeof(level) == 'string') level = parseInt(level);
+        if(value === '+v'){
+            value = "Tổng cột"
+            //instance.setCellMeta(row, col, "readOnly", true);
+            td.style.background = '#abd7e5';
+            
+        }
+        else if(value === '+h'){
+            value = "Tổng hàng"
+            //instance.setCellMeta(row, col, "readOnly", true);  
+        }
+        else if(value == '#'){
+            value = "Dữ liệu nhập"
+        }
+        else{
+            let number = parseFloat(value)
+            if(!isNaN(number)){
+                value = number.toFixed(2);
+            }
+            else{
+                value = "Giá trị không hợp lệ"
+            }
+            td.style.textAlign  = 'right'    
+        }
+        
+		styling(level, value, td, col)
+	}
+
+    // register custom renderer
+    Handsontable.renderers.registerRenderer('nameStyling', nameStyling);
+    Handsontable.renderers.registerRenderer('unitStyling', unitStyling);
+    Handsontable.renderers.registerRenderer('dataStyling', dataStyling); 
+    
+    
+    
+    const maxIndent = 4;
+
+    var hot;
+    var hotSettings2 = {
+		data: <%-JSON.stringify(data)%>,
+		stretchH: 'all',
+        rowHeaders: true,
+        colHeaders: true,
+        allowInsertRow:true,
+        allowInsertColumn: true,
+        autoColumnSize:true,
+        contextMenu:true,
+        language:'vi-VN',
+		columns: [
+            {
+				data: 'id',
+				type: "numeric"
+			},
+            {
+				data: 'level',
+				type: "numeric"
+			},
+            {
+				data: 'name',
+				type: 'text',
+				renderer: "nameStyling"
+			},
+			{
+				data: 'unit',
+				type: 'text',
+				renderer: "unitStyling"
+			},
+			{
+				data: 'value',
+				type: "numeric",
+                renderer: "dataStyling"
+                
+            }
+		],
+		colHeaders: [
+			'id',"level",'Tên', "Đơn Vị", "Tổng Khối Lượng"
+		],
+		hiddenColumns: {
+			columns:[0,1],
+			indicator: false
+		},
+        filters: true,
+		afterCreateRow: function (index) {
+            // set ID
+            maxID = Math.max(dataTable.reduce((m, e) => Math.max(m, parseInt(e[0])), parseInt(dataTable[0][0])) +1, maxID);
+            hot.setDataAtCell(index, 0, maxID++)
+
+            // set level
+            hot.setDataAtCell(index, 1, maxIndent)
+
+            // set tên
+            hot.setDataAtCell(index, 2, "") 
+
+            // set đơn vị
+            hot.setDataAtCell(index, 3, "")
+            
+            // set tổng khối lượng
+            hot.setDataAtCell(index, 4, "#") 
+            
+        },
+
+        afterSelection: function (row, col){
+            currentRow = row;
+            currentCol = col;
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+    }
+    hot = new Handsontable(hotElement, hotSettings2);
+    let dataTable = hot.getData();
+
+    
+
+    Handsontable.dom.addEvent(saveBtn, 'click', function () {
+        // save all cell's data
+        $.post("<%= utils.makeUrl('/saveTable') %>",{ data: hot.getSourceData() } ,function(data,status){
+            console.log("Data: " + data + "\nStatus: " + status);
+        })
+    });
+    Handsontable.dom.addEvent(indentBtn, 'click', function () {
+        // get row's data
+        let level = hot.getDataAtCell(currentRow,1);
+        level = parseInt(level, 10);
+        
+        // set level for current row
+        if(level == maxIndent)  return;
+        level = level + 1
+        hot.setDataAtCell(currentRow, 1, level)
+        hot.selectCell(currentRow,currentCol)
+    });
+    Handsontable.dom.addEvent(outdentBtn, 'click', function () {
+       // get row's data
+        let level = hot.getDataAtCell(currentRow,1);
+        level = parseInt(level, 10);
+        
+        // set level for current row
+        if(level == 1 ) return;
+        level = level - 1;
+        hot.setDataAtCell(currentRow, 1, level)
+        hot.selectCell(currentRow,currentCol)
+        
+    });
+
+</script>

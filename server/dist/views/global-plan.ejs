@@ -1,0 +1,74 @@
+
+<h4 class="pt-4">Thông tin</h4>
+<div class="btn-toolbar" role="toolbar">
+	<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+		<div class="btn-group mb-2 me-2">
+			<a class="btn btn-secondary" href="<%= utils.makeUrl(`/global-plan/${plan['id']}/edit`) %>">
+				<i class="fas fa-edit"></i> Sửa thông tin
+			</a>
+
+			<% if (utils.hasPermission(ctx, 'perm_administration')) { %>
+				<button type="button" class="btn btn-danger" onclick="ConfirmDialogForUrl('Bạn muốn xoá kế hoạch?', '<%= utils.makeUrl(`/global-plan/${plan['id']}/delete`) %>')">
+					<i class="fas fa-trash"></i> Xoá
+				</button>
+			<% }%>
+		</div>
+
+		<div class="btn-group mb-2">
+			<button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+				<i class="fas fa-project-diagram"></i> Theo công trình
+			</button>
+			<div class="dropdown-menu">
+				<% if (plan.projects.length == 0) { %>
+					<button type="button" class="dropdown-item disabled">(Không có công trình nào)</button>
+				<% } else {
+					for (const item of plan.projects) { %>
+						<a class="dropdown-item" href="<%= utils.makeUrl(`/global-plan/${plan['id']}/project/${item['id']}`) %>"><%= item['name'] %></a>
+					<% }
+				} %>
+			</div>
+		</div>
+	<% } %>
+</div>
+
+<table class="table">
+	<tr>
+		<td class="w-25">Tên</td>
+		<td class="w-75"><%= plan.name %></td>
+	</tr>
+	<tr>
+		<td>Mô tả</td>
+		<td><%= plan.description %></td>
+	</tr>
+	<tr>
+		<td>Năm</td>
+		<td><%= plan.year %></td>
+	</tr>
+	<tr>
+		<td>Người tạo</td>
+		<td><a href="<%= utils.makeUrl(`/user/${plan['uid']}`) %>"><%= plan.uname %></a></td>
+	</tr>
+	<tr>
+		<td>Thời gian tạo</td>
+		<td><%= moment(plan.create_time).format(config.timeFormat.moment) %></td>
+	</tr>
+</table>
+
+
+
+<h4 class="pt-4">Kế hoạch tổng hợp
+	<div class="btn-group">
+		<button type="button" class="btn btn-secondary dropdown-toggle btn-sm" data-bs-toggle="dropdown"></button>
+		<div class="dropdown-menu">
+			<a class="dropdown-item<%= monthly ? '' : ' disabled' %>" href="<%= utils.makeUrl(`/global-plan/${plan['id']}`) %>">
+				<i class="far fa-fw <%= monthly ? 'fa-circle' : 'fa-dot-circle' %>"></i> Cả năm
+			</a>
+			<a class="dropdown-item<%= monthly ? ' disabled' : '' %>" href="<%= utils.makeUrl(`/global-plan/${plan['id']}/monthly`) %>">
+				<i class="far fa-fw <%= monthly ? 'fa-dot-circle' : 'fa-circle' %>"></i> Từng tháng
+			</a>
+		</div>
+	</div>
+</h4>
+
+<%- include('inc/sheet-project-data-input.ejs') %>
+

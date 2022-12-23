@@ -1,0 +1,19 @@
+<% if (list.length == 0) { %>
+	<p class="alert alert-warning">Không có tài khoản người dùng nào.</p>
+<% } else { %>
+	<div class="list-group">
+		<% for (const item of list) { %>
+			<a class="list-group-item list-group-item-action flex-column align-items-start" href="<%= utils.makeUrl(`/user/${item['id']}`) %>">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1"><%= item['full_name'] %>
+						<% if (item['deactivate_time'] != null) { %>
+							<span class="badge bg-danger">Khoá</span>
+						<% } %>
+						<small><%= item['group_name'] %></small>
+					</h5>
+					<p><%= item.description %></p>
+				</div>
+			</a>
+		<% } %>
+	</div>
+<% } %>

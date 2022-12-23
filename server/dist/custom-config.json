@@ -1,0 +1,11 @@
+{
+	"webServer" : {
+		"portHttp" : 5005,
+		"portHttps" : 443,
+		"path" : "/klmo",
+		"publicAddress" : "http://mica.edu.vn/klmo"
+	},
+
+
+	"backupCronSchedule": "0 0 0 * * SUN"
+}

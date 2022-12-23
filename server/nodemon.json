@@ -1,0 +1,5 @@
+{
+  "watch": ["."],
+  "ignore": ["js-css-src/*", "tmp/*", "dist/public/*"],
+  "ext": "js, css, ejs"
+}

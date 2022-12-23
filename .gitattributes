@@ -1,0 +1,2 @@
+server/dist/custom-config.json merge=ours
+server/dist/bin/* merge=ours

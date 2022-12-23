@@ -1,0 +1,134 @@
+<script src="<%= utils.makeUrl('/lib/moment-2.24.0.min.js') %>"></script>
+
+<div id="the-form" class="row">
+	<div class="col-md-8 col-lg-6">
+		<div class="mb-3">
+			<label class="form-label fw-bold">Thời gian báo cáo (tháng bắt đầu - kết thúc):</label>
+
+			<div class="btn-toolbar">
+				<div class="input-group date-picker-group me-2">
+					<button class="btn btn-secondary previous-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tháng trước"><i class="fas fa-chevron-circle-left"></i></button>
+					<input type="text" class="form-control date-picker" data-date-type="month" id="start-month-picker" value="<%= moment().month(0).format("MM/YYYY") %>" readonly />
+					<button class="btn btn-secondary next-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tháng sau"><i class="fas fa-chevron-circle-right"></i></button>
+				</div>
+
+				<div class="input-group date-picker-group me-2">
+					<button class="btn btn-secondary previous-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tháng trước"><i class="fas fa-chevron-circle-left"></i></button>
+					<input type="text" class="form-control date-picker" data-date-type="month" id="end-month-picker" value="<%= moment().format("MM/YYYY") %>" readonly />
+					<button class="btn btn-secondary next-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tháng sau"><i class="fas fa-chevron-circle-right"></i></button>
+				</div>
+			</div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="report-type">Loại báo cáo:</label>
+			
+			<select class="form-select" id="report-type">
+				<option value="<%= project.REPORT_TYPES.THEO_DOI %>">Báo cáo theo dõi</option>
+				<option value="<%= project.REPORT_TYPES.TONG_HOP %>">Báo cáo tổng hợp</option>
+			</select>
+		</div>
+
+		<div class="mb-3" id="global-plan-input-group" style="display:none">
+			<label class="form-label fw-bold">Kế hoạch tham chiếu:</label>
+			
+			<select class="form-select" id="global-plan">
+				<% if (globalPlans.length == 0) { %>
+					<option disabled>(Không có kế hoạch nào)</option>
+				<% } else {
+					let currentYear = null;
+					for (const item of globalPlans) {
+						if (item['year'] != currentYear) {
+							if (currentYear != null) { %>
+								</optgroup>
+							<% }
+			
+							%>
+							<optgroup label="<%= item['year'] %>">
+							<%
+			
+							currentYear = item['year'];
+						}
+				
+						%>
+						<option value="<%= item['id'] %>"><%= item['name'] %></option>
+						<%
+					} %>
+
+					</optgroup>
+				<% } %>
+			</select>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="description">Ghi chú:</label>
+			<input id="description" type="text" class="form-control" name="description" />
+		</div>
+
+		<button type="button" class="btn btn-primary me-2" id="generate-report"><i class="fas fa-file-export"></i> Xuất báo cáo</button>
+		<div id="report-management" class="btn-group" style="display:none">
+			<a href="" class="btn btn-success" id="download-report"><i class="fas fa-download"></i> Tải báo cáo</a>
+			<a href="<%= utils.makeUrl('/reports') %>" class="btn btn-secondary"><i class="fas fa-list"></i> Danh sách báo cáo</a>
+		</div>
+	</div>
+</div>
+
+
+
+<script>
+$(function() {
+	const smp = $('#start-month-picker'),
+		emp = $('#end-month-picker');
+
+	$('#start-month-picker, #end-month-picker').datepicker({
+		autoclose: true,
+		assumeNearbyYear: true,
+		format: 'mm/yyyy',
+		language: 'vi',
+		orientation: 'bottom',
+		todayHighlight: true,
+		disableTouchKeyboard: true,
+		minViewMode: 1,
+		zIndexOffset: 1000
+	});
+
+	const exportBtn = $('#generate-report'),
+		downloadBtn = $('#download-report'),
+		reportTypeSel = $('#report-type');
+
+	exportBtn.click(function() {
+		const spinner = $('<i class="fas fa-spin fa-spinner"></i>');
+		spinner.appendTo(exportBtn.parent());
+
+		$.post("<%= utils.makeUrl('/report/export/save') %>", {
+			startDate: smp.val(),
+			endDate: emp.val(),
+			reportType: reportTypeSel.val(),
+			globalPlan: $('#global-plan').val(),
+			description: $('#description').val()
+
+		}).success(ret => {
+			spinner.remove();
+			if (ret.msg != 'OK') return notify(ret.msg);
+
+			$('#the-form').find('button, a, select').not('#report-management a').prop('disabled', true);
+			$('#start-month-picker, #end-month-picker').datepicker('destroy');
+
+			downloadBtn.attr('href', ret.data.url);
+			$('#report-management').show();
+
+		}).fail(err => {
+			spinner.remove();
+			console.log(err);
+		});
+	});
+
+	reportTypeSel.change(function() {
+		if (reportTypeSel.val() == <%= project.REPORT_TYPES.TONG_HOP %>) {
+			$('#global-plan-input-group').slideDown('fast');
+		} else {
+			$('#global-plan-input-group').slideUp('fast');
+		}
+	}).trigger('change');
+});
+</script>

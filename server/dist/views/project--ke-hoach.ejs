@@ -1,0 +1,47 @@
+
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2 me-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl(`/project/${projectId}`) %>">
+			<i class="fas fa-cogs"></i> Quản trị công trình
+		</a>
+		<a class="btn btn-secondary" href="<%= utils.makeUrl(`/global-plan/${globalPlan['id']}`) %>">
+			<i class="fas fa-paper-plane"></i> Kế hoạch tổng hợp
+		</a>
+	</div>
+
+	<div class="btn-group mb-2">
+		<button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+			<i class="fas fa-puzzle-piece"></i> Nhập theo đơn vị
+		</button>
+		<div class="dropdown-menu">
+<% if (divisions.length == 0) { %>
+			<a class="dropdown-item disabled" href="#">(Không có phân xưởng nào tham gia công trình)</a>
+<% } else { %>
+			<div class="list-group">
+<% for (const item of divisions) { %>
+				<a class="dropdown-item" href="<%= utils.makeUrl(`/project/${projectId}/ke-hoach/${globalPlan['id']}/${item['id']}`) %>"><%= item.name %></a>
+<% } %>
+			</div>
+<% } %>
+		</div>
+	</div>
+</div>
+
+
+
+<h4 class="pt-4">Kế hoạch tổng hợp theo công trình
+	<div class="btn-group">
+		<button type="button" class="btn btn-secondary dropdown-toggle btn-sm" data-bs-toggle="dropdown"></button>
+		<div class="dropdown-menu">
+			<a class="dropdown-item<%= monthly ? '' : ' disabled' %>" href="<%= utils.makeUrl(`/global-plan/${globalPlan['id']}/project/${projectId}`) %>">
+				<i class="far fa-fw <%= monthly ? 'fa-circle' : 'fa-dot-circle' %>"></i> Cả năm
+			</a>
+			<a class="dropdown-item<%= monthly ? ' disabled' : '' %>" href="<%= utils.makeUrl(`/global-plan/${globalPlan['id']}/project/${projectId}/monthly`) %>">
+				<i class="far fa-fw <%= monthly ? 'fa-dot-circle' : 'fa-circle' %>"></i> Từng tháng
+			</a>
+		</div>
+	</div>
+</h4>
+
+<%- include('inc/sheet-project-data-input.ejs') %>
+

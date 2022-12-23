@@ -1,0 +1,132 @@
+
+<h4 class="pt-4">Thông tin</h4>
+<div class="btn-toolbar" role="toolbar">
+	<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+		<div class="btn-group mb-2 me-2">
+			<a class="btn btn-secondary" href="<%= utils.makeUrl(`/project/${project['id']}/edit`) %>">
+				<i class="fas fa-edit"></i> Sửa thông tin
+			</a>
+
+			<% if (!project.finish_time) { %>
+				<div class="btn-group">
+					<button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+						<i class="fas fa-paper-plane"></i> Kế hoạch
+					</button>
+					<div class="dropdown-menu">
+						<% if (project.globalPlans.length == 0) { %>
+							<button type="button" class="dropdown-item disabled">(Không có kế hoạch nào)</button>
+						<% } else {
+							let currentYear = null;
+							for (const item of project.globalPlans) {
+								if (item['year'] != currentYear) {
+									if (currentYear != null) { %>
+										<div class="dropdown-divider"></div>
+									<% }
+					
+									%>
+									<h6 class="dropdown-header">Năm <%= item['year'] %></h6>
+									<%
+					
+									currentYear = item['year'];
+								}
+						
+								%>
+								<a class="dropdown-item" href="<%= utils.makeUrl(`/global-plan/${item['id']}/project/${project['id']}`) %>"><%= item['name'] %></a>
+								<%
+							}
+						} %>
+					</div>
+				</div>
+
+				<a class="btn btn-secondary" href="<%= utils.makeUrl(`/project/${project['id']}/kiem-tra-kt`) %>">
+					<i class="fas fa-tasks"></i> Kiểm tra (KT)
+				</a>
+
+				<a class="btn btn-danger" href="<%= utils.makeUrl(`/project/${project['id']}/close`) %>">
+					<i class="fas fa-lock"></i> Hoàn thành
+				</a>
+			<% } else { %>
+				<a class="btn btn-success" href="<%= utils.makeUrl(`/project/${project['id']}/reopen`) %>">
+					<i class="fas fa-unlock"></i> Mở lại
+				</a>
+			<% } %>
+		</div>
+	<% } %>
+
+	<% if (!project.finish_time && utils.hasPermission(ctx, 'perm_kcs')) { %>
+		<a class="btn btn-secondary mb-2 me-2" href="<%= utils.makeUrl(`/project/${project['id']}/kiem-tra-kcs`) %>">
+			<i class="fas fa-check-double"></i> Kiểm tra (KCS)
+		</a>
+	<% } %>
+
+	<% if (!project.finish_time && utils.hasPermission(ctx, 'perm_phan_xuong')) {
+		const memberExecutors = project.executors.filter(e => e.isProjectMember);
+		%>
+		<div class="btn-group mb-2">
+			<button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+				<i class="fas fa-calendar-check"></i> Thực hiện
+			</button>
+
+			<div class="dropdown-menu">
+			<% if (memberExecutors.length == 0) { %>
+				<button type="button" class="dropdown-item disabled">(Không là thành viên của phân xưởng thực hiện nào)</button>
+			<% } else {
+				for (const exe of memberExecutors) { %>
+					<a class="dropdown-item" href="<%= utils.makeUrl(`/project/${project['id']}/thuc-hien/${exe.id}`) %>"><%= exe.name %></a>
+				<% }
+			} %>
+			</div>
+		</div>
+	<% } %>
+</div>
+
+<% if (project.finish_time) { %>
+	<p class="alert alert-warning">Công trình đã hoàn thành.</p>
+<% } %>
+
+<table class="table">
+	<tr>
+		<td class="w-25">Tên</td>
+		<td class="w-75"><%= project.name %></td>
+	</tr>
+	<tr>
+		<td>Mô tả</td>
+		<td><%= project.description %></td>
+	</tr>
+	<tr>
+		<td>Người tạo</td>
+		<td><a href="<%= utils.makeUrl(`/user/${project['uid']}`) %>"><%= project.uname %></a></td>
+	</tr>
+	<tr>
+		<td>Thời gian tạo</td>
+		<td><%= moment(project.create_time).format(config.timeFormat.moment) %></td>
+	</tr>
+	<tr>
+		<td>Ngày bắt đầu</td>
+		<td><%= project.start_date ? moment(project.start_date).format(config.dateFormat.moment) : '(chưa xác định)' %></td>
+	</tr>
+	<tr>
+		<td>Ngày kết thúc</td>
+		<td><%= project.end_date ? moment(project.end_date).format(config.dateFormat.moment) : '(chưa xác định)' %></td>
+	</tr>
+
+	<% if (project.finish_time) { %>
+		<tr>
+			<td>Thời gian hoàn thành</td>
+			<td><%= moment(project.finish_time).format(config.timeFormat.moment) %></td>
+		</tr>
+	<% } %>
+
+	<tr>
+		<td>Các đơn vị thực hiện</td>
+		<td>
+			<% if (project.executors.length == 0) { %>
+				(Không có)
+			<% } else { %>
+				<%- project.executors.map(e => `<a href="${utils.makeUrl('/division/' + e.id)}">${e.name}</a>`).join(', ') %>
+			<% } %>
+		</td>
+	</tr>
+</table>
+
+

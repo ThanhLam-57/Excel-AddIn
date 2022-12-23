@@ -1,0 +1,12 @@
+
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl('/user/add') %>">
+			<i class="fas fa-plus-circle"></i> Tạo mới
+		</a>
+	</div>
+</div>
+
+<%- include('inc/print-user-list', { list: users }) %>
+
+

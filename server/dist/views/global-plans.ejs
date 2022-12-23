@@ -1,0 +1,48 @@
+
+
+<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+	<div class="btn-toolbar" role="toolbar">
+		<div class="btn-group mb-2">
+			<a class="btn btn-secondary" href="<%= utils.makeUrl('/global-plan/add') %>">
+				<i class="fas fa-plus-circle"></i> Tạo mới
+			</a>
+		</div>
+	</div>
+<% } %>
+
+<% if (list.length == 0) { %>
+	<p class="alert alert-warning">Không có kế hoạch nào.</p>
+<% } else { %>
+	<%	let currentYear = null;
+		for (const item of list) {
+			if (item['year'] != currentYear) {
+				if (currentYear != null) {
+					%>
+					</div>
+					<%
+				}
+
+				%>
+				<h4 class="pt-4">Năm <%= item['year'] %></h4>
+				<div class="list-group">
+				<%
+
+				currentYear = item['year'];
+			}
+	
+			%>
+			<a class="list-group-item list-group-item-action flex-column align-items-start" href="<%= utils.makeUrl(`/global-plan/${item['id']}`) %>">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1"><%= item.name %></h5>
+				</div>
+				<p><%= item.description %></p>
+			</a>
+			<%
+		}
+
+		%>
+		</div>
+		<%
+
+	%>
+<% } %>

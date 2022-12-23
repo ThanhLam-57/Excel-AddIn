@@ -1,0 +1,13 @@
+node_modules/
+sshCMD.txt
+
+/server/tmp/
+/server/dist/main.dist.js
+/server/dist/tmp/
+/server/dist/data/report
+/server/dist/data/backup
+
+/DongleChecker/**/Debug/
+/DongleChecker/**/Release/
+/DongleChecker/Linux/
+.vs/

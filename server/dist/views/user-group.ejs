@@ -1,0 +1,42 @@
+
+<h4 class="pt-4">Thông tin</h4>
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl(`/user-group/${group['id']}/edit`) %>">
+			<i class="fas fa-edit"></i> Sửa
+		</a>
+
+		<% if (utils.hasPermission(ctx, 'perm_manage_users')) { %>
+			<button type="button" class="btn btn-danger" onclick="ConfirmDialogForUrl('Bạn muốn xoá nhóm tài khoản?', '<%= utils.makeUrl(`/user-group/${group['id']}/delete`) %>')">
+				<i class="fas fa-trash"></i> Xoá
+			</button>
+		<% } %>
+	</div>
+</div>
+
+<table class="table">
+	<tr>
+		<td class="w-25">Tên</td>
+		<td class="w-75"><%= group.name %></td>
+	</tr>
+	<tr>
+		<td>Mô tả</td>
+		<td><%= group.description %></td>
+	</tr>
+	<tr>
+		<td>Quyền</td>
+		<td>
+			<% const gp = utils.USER_PERMISSIONS.filter(p => group[p.name]);
+			if (gp.length == 0) { %>
+				(Chưa được cấp quyền nào)
+			<% } else { %>
+				<%= gp.map(p => p.desc).join(', ') %>
+			<% } %>
+		</td>
+	</tr>
+</table>
+
+<h4 class="pt-4">Danh sách tài khoản</h4>
+
+<%- include('inc/print-user-list', { list: users }) %>
+

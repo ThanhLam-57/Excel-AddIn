@@ -1,0 +1,23 @@
+
+<p>Trang này cho phép bạn tải về file cài đặt ứng dụng <%= config.title %> mở rộng cho Excel.</p>
+
+<p>Bạn có thể sử dụng một trong hai phiên bản:</p>
+<ul>
+    <li>Bản tự động đăng nhập: Cho phép bạn tự động đăng nhập với tài khoản đang sử dụng.
+        <div class="alert alert-warning">
+            <h5 class="alert-heading">Chú ý khi sử dụng bản tự động đăng nhập:</h5>
+            <ul>
+                <li>File tải về có lưu thông tin liên quan tới tài khoản, cho phép bạn sử dụng phần mềm với tài khoản mà bạn đang sử dụng. Mỗi người dùng cần sử dụng một file riêng biệt. Vì vậy, không được chia sẻ file này cho người dùng khác.</li>
+                <li>Khi thay đổi mật khẩu, bạn sẽ cần tải lại file mới và cài đặt lại.</li>
+                <li>Cách cài đặt ứng dụng mở rộng cho Excel được mô tả trong tài liệu hướng dẫn sử dụng.</li>
+                <li>Nếu máy tính đang dùng được chia sẻ cùng với người khác, bạn không nên sử dụng bản này.</li>
+            </ul>
+        </div>
+    </li>
+    <li>Bản không tự động đăng nhập: Không tự động đăng nhập, mà bạn cần nhập mật khẩu mỗi lần sử dụng.</li>
+</ul>
+
+
+<a class="btn btn-primary mb-2" href="<%= utils.makeUrl('/user/excel-add-in/download?autologin=1') %>"><i class="fas fa-download"></i> Tải về file cài đặt CÓ tự động đăng nhập</a>
+<a class="btn btn-primary mb-2" href="<%= utils.makeUrl('/user/excel-add-in/download?autologin=0') %>"><i class="fas fa-download"></i> Tải về file cài đặt KHÔNG tự động đăng nhập</a>
+

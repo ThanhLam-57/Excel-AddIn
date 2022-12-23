@@ -1,0 +1,48 @@
+<link href="<%= utils.makeUrl('/lib/handsontable.full.min.css') %>" rel="stylesheet" media="screen">
+<script src="<%= utils.makeUrl('/lib/handsontable.full.min.js') %>"></script>
+<script src="<%= utils.makeUrl('/lib/moment-2.24.0.min.js') %>"></script>
+
+<script>
+document.write(isIe11 ? '<script src="<%= utils.makeUrl('/sheet-ie11.min.js') %>"><\/script>'
+	: '<script src="<%= utils.makeUrl('/sheet.min.js') %>"><\/script>');
+</script>
+
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2 me-2">
+		<button class="btn btn-secondary" id="refreshBtn" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tải lại dữ liệu"><i class="fas fa-sync-alt"></i></button>
+<% if (!sheetReadonly) { %>
+		<button class="btn btn-success" id="saveBtn" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Lưu"><i class="fas fa-save"></i></button>
+<% } %>
+	</div>
+
+<% if (!sheetStaticData) {
+	const dateFormat = monthDate ? 'MM/YYYY' : 'DD/MM/YYYY';
+	%>
+	<div class="input-group ms-auto date-picker-group">
+		<button class="btn btn-secondary previous-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<%= monthDate ? 'Tháng trước' : 'Ngày trước' %>"><i class="fas fa-chevron-circle-left"></i></button>
+		<input type="text" class="form-control date-picker"
+			data-date-type="<%= monthDate ? 'month' : 'day' %>"
+			<%= monthDate ? '' : 'readonly' %>
+			value="<%= (typeof sheetInitialDate != 'undefined' ? moment(sheetInitialDate) : moment()).format(dateFormat) %>"
+			<%= typeof sheetStartDate != 'undefined' ? `data-date-start-date="${moment(sheetStartDate).format(dateFormat)}"` : '' %>
+			<%= typeof sheetEndDate != 'undefined' ? `data-date-end-date="${moment(sheetEndDate).format(dateFormat)}"` : '' %> />
+		<button class="btn btn-secondary next-date" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<%= monthDate ? 'Tháng sau' : 'Ngày sau' %>"><i class="fas fa-chevron-circle-right"></i></button>
+	</div>
+<% } %>
+</div>
+
+
+<p></p>
+<div id="hot"></div>
+<script>
+	const dataType = <%= dataType %>;
+	const monthDate = <%= monthDate %>;
+	const loadURL = "<%= loadUrl %>";
+	const saveURL = "<%= typeof saveUrl != 'undefined' ? saveUrl : '' %>";
+
+	// to sheet
+	const isConfig = false;
+	const sheetReadonly = <%= sheetReadonly %>;
+	const sheetStaticData = <%= sheetStaticData %>;
+	const sheetColumns = <%- JSON.stringify(columns) %>;
+</script>

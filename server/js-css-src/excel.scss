@@ -1,0 +1,71 @@
+body {
+    padding-top: 1rem;
+}
+
+.btn-bar {
+    width: 100%;
+    display: flex;
+    max-width: 50rem;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.btn-bar > * {
+    text-align: left;
+    flex: 1;
+}
+
+.btn-bar > *.flex-fixed {
+    flex: 0;
+}
+
+
+.info-bar {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 100;
+}
+
+.info-bar p {
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+}
+
+
+// .modal.modal-fullscreen .modal-dialog {
+//     width: 100vw;
+//     height: 100vh;
+//     margin: 0;
+//     padding: 0;
+//     max-width: none;
+// }
+
+// .modal.modal-fullscreen .modal-content {
+//     height: auto;
+//     height: 100vh;
+//     border-radius: 0;
+//     border: none;
+// }
+
+// .modal.modal-fullscreen .modal-body {
+//     overflow-y: auto;
+// }
+
+
+.diff-table .goto-icon {
+    font-size: 90%;
+    cursor: pointer;
+    color: #aaa;
+    display: block;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+}
+
+.diff-table .goto-icon:hover {
+    color: blue;
+}

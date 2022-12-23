@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<title><%= locals.title || config.title %></title>
+
+		<script src="<%= utils.makeUrl('/lib/jquery-2.2.4.min.js') %>"></script>
+
+		<!-- IE11 support -->
+		<script nomodule crossorigin="anonymous" src="https://polyfill.io/v3/polyfill.min.js?features=default%2CNumber.parseInt%2CNumber.parseFloat%2CArray.prototype.find%2CArray.prototype.includes"></script>
+		<script>
+		var isIe11 = !!window.MSInputMethodContext && !!document.documentMode;
+		if (isIe11) {
+			document.write('<link rel="stylesheet" href="<%= utils.makeUrl('/lib/bootstrap-ie11-5.1.3.min.css') %>">' +
+				'<script src="<%= utils.makeUrl('/lib/bootstrap-ie11-5.1.3.bundle.min.js') %>"><\/script>' +
+				'<script src="<%= utils.makeUrl('/common-ie11.min.js') %>"><\/script>');
+		} else {
+			document.write('<script src="<%= utils.makeUrl('/lib/bootstrap-5.1.3.bundle.min.js') %>"><\/script>' +
+				'<script src="<%= utils.makeUrl('/common.min.js') %>"><\/script>');
+		}
+		</script>
+
+		<script src="<%= utils.makeUrl('/lib/bootstrap-datepicker.min.js') %>"></script>
+		<script src="<%= utils.makeUrl('/lib/bootstrap-datepicker.vi.min.js') %>"></script>
+
+		<link rel='stylesheet' href="<%= utils.makeUrl('/lib/bootstrap-5.1.3.min.css') %>">
+		<link rel='stylesheet' href="<%= utils.makeUrl('/lib/bootstrap-datepicker.standalone.min.css') %>">
+		<link rel='stylesheet' href="<%= utils.makeUrl('/lib/fontawesome-free-5.11.2-web/css/all.min.css') %>">
+		<link rel='stylesheet' href="<%= utils.makeUrl('/common.min.css') %>">
+
+		<script>
+		var _UrlBase = "<%= utils.makeUrl('') %>";
+		</script>
+
+		<%- style %>
+
+	</head>
+<body>
+
+	<img class="background-img" src="<%= utils.makeUrl('/images/background.jpg') %>" />
+
+	<%	// login modal
+	if (!utils.isLoggedIn(ctx)) { %>
+		<div id="login-modal" class="modal fade" tabindex='-1' role='dialog' aria-labelledby='login-modal-label' aria-hidden='true'>
+			<div class="modal-dialog" role='document'>
+				<div class="modal-content">
+					<form action="<%= utils.makeUrl('/login') %>" method='post'>
+						<div class="modal-header">
+							<h5 id="login-modal-label" class="modal-title">Đăng nhập</h5>
+							<button class="btn-close" type='button' data-bs-dismiss='modal' aria-label='Đóng'></button>
+						</div>
+
+						<div class="modal-body">
+							<input type='hidden' name='backUrl' value="<%= ctx.req.originalUrl %>">
+
+							<div class="input-group mb-2">
+								<div class="input-group-text"><i class="fa fa-fw fa-user text-info"></i></div>
+								<input class="form-control" type='text' name='username' placeholder='Tên đăng nhập' required autofocus>
+							</div>
+
+							<div class="input-group mb-2">
+								<div class="input-group-text"><i class="fa fa-fw fa-key text-info"></i></div>
+								<input class="form-control" type='password' name='password' placeholder='Mật khẩu' required>
+							</div>
+
+							<div class="form-check form-switch my-0">
+								<input type="checkbox" class="form-check-input" id="remember" name="remember" value="ON">
+								<label class="form-check-label" for="remember">Nhớ đăng nhập</label>
+							</div>
+						</div>
+
+						<div class="modal-footer">
+							<button class="btn btn-primary" type='submit'>OK</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	<% } %>
+
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+		<div class="container">
+			<a class="navbar-brand" href="<%= utils.makeUrl('') %>"><i class="fas fa-home"></i> Trang chủ</a>
+			
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbars" aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+
+			<div id="navbars" class="collapse navbar-collapse">
+				<ul class="navbar-nav me-auto">
+
+					<% if (utils.hasPermission(ctx, 'perm_manage_users')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownAdmin" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Quản trị</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownAdmin">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/admin') %>">Trang quản trị</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/divisions') %>">Phòng ban, bộ phận</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/user-groups') %>">Nhóm tài khoản người dùng</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/users') %>">Tài khoản người dùng</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/backups') %>">Sao lưu</a>
+							</div>
+						</li>
+					<% } %>
+
+					<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownKyThuat" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">P. Kỹ thuật</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownKyThuat">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/projects/structure') %>">Sửa cấu trúc bảng biểu</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plan/add') %>">Tạo kế hoạch mới</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/projects') %>">Danh mục công trình</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/project/add') %>">Tạo công trình mới</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/reports') %>">Danh sách báo cáo</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/report/export') %>">Xuất báo cáo</a>
+							</div>
+						</li>
+					<% } %>
+
+					<!-- <% if (utils.hasPermission(ctx, 'perm_ke_hoach')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownKeHoach" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">P. Kế hoạch</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownKeHoach">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/ke-hoach/') %>">Danh mục công trình</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/ke-hoach/') %>">Tạo công trình mới</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plan/add') %>">Tạo kế hoạch mới</a>
+							</div>
+						</li>
+					<% } %> -->
+
+					<!-- <% if (utils.hasPermission(ctx, 'perm_vat_tu')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownVatTu" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">P. Vật tư</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownVatTu">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/vat-tu/') %>">Danh mục thiết kế chờ phê duyệt</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/vat-tu/') %>">Cấp vật tư</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/vat-tu/') %>">Nghiệm thu thiết kế</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+							</div>
+						</li>
+					<% } %> -->
+
+					<!-- <% if (utils.hasPermission(ctx, 'perm_ke_toan')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownKeToan" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">P. Kế toán</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownKeToan">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/ke-toan/') %>">Danh mục thiết kế</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/ke-toan/') %>">Thanh quyết toán</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+							</div>
+						</li>
+					<% } %> -->
+
+					<% if (utils.hasPermission(ctx, 'perm_kcs')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownKCS" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">P. KCS</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownKCS">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/projects') %>">Danh mục công trình</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+							</div>
+						</li>
+					<% } %>
+			
+					<% if (utils.hasPermission(ctx, 'perm_phan_xuong')) { %>
+						<li class="nav-item dropdown">
+							<a id="dropdownPhanXuong" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Phân xưởng</a>
+							<div class="dropdown-menu" aria-labelledby="dropdownPhanXuong">
+								<a class="dropdown-item" href="<%= utils.makeUrl('/projects') %>">Danh mục công trình</a>
+								<a class="dropdown-item" href="<%= utils.makeUrl('/global-plans') %>">Danh mục kế hoạch</a>
+							</div>
+						</li>
+					<% } %>
+				</ul>
+		
+				<div class="d-flex">
+					<% if (!utils.isLoggedIn(ctx)) { %>
+						<button class="btn btn-outline-success my-2 my-sm-0" data-bs-toggle="modal" data-bs-target="#login-modal">
+							<i class="fas fa-sign-in-alt"></i> Đăng nhập
+						</button>
+
+					<% } else { %>
+						<ul class="navbar-nav">
+							<li class="nav-item dropdown">
+								<a id="dropdownUser" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<i class="fas fa-user-circle"></i> <%= user.fullName %>
+								</a>
+								<div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+									<a class="dropdown-item" href="<%= utils.makeUrl('/profile') %>">Trang cá nhân</a>
+									<a class="dropdown-item" href="<%= utils.makeUrl(`/user/${utils.getUserId(ctx)}/change-password`) %>">Đổi mật khẩu</a>
+									<div class="dropdown-divider"></div>
+									<a class="dropdown-item" href="<%= utils.makeUrl('/user/download') %>">Tài nguyên</a>
+									<div class="dropdown-divider"></div>
+									<a id="btn-logout" class="dropdown-item" href="#">Đăng xuất</a>
+								</div>
+							</li>
+						</ul>
+					<% } %>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+		<% if (locals.title) { %>
+			<h1 class="bd-title"><%- title %></h1>
+
+			<% if (locals.breadcrumb) { %>
+				<nav aria-label='breadcrumb'>
+					<ol class="breadcrumb">
+						<% for (const e in breadcrumb) { %>
+							<li class="breadcrumb-item">
+								<a href="<%= breadcrumb[e] %>"><%= e %></a>
+							</li>
+						<% } %>
+					</ol>
+				</nav>
+			<% } %>
+		<% } %>
+
+
+		<%- body %>
+
+
+	</div>	<%# content container %>
+
+	<hr class="mb-1" id="footer-separator" />
+
+	<div class="container small pb-4">
+		<div class="row">
+			<div class="col"><a href="<%= utils.makeUrl('/about') %>"><%= config.title %> <%= config.version %></a></div>
+			<div class="col-sm-3 text-end"><%= config.copyright %></div>
+		</div>
+	</div>
+
+	<%- script %>
+
+</body>
+</html>

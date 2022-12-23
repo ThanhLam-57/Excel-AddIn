@@ -1,0 +1,256 @@
+<p>Xin chào <%= user.fullName %>
+	(<%= user.groups.length == 0 ? 'Không thuộc nhóm nào' : user.groups.map(g => g.name).join(', ') %>).
+
+
+<h4>Thông tin chung</h4>
+
+<% if (utils.hasPermission(ctx, 'perm_manage_users')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> tài khoản</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_ky_thuat')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình đang thiết kế</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_ke_hoach')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình đang thực hiện</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_vat_tu')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình chờ cấp vật tư</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_ke_toan')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình chưa nghiệm thu</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_kcs')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình đang kiểm tra</p>
+<% } %>
+
+<% if (utils.hasPermission(ctx, 'perm_phan_xuong')) { %>
+<p>Có <span class="badge bg-primary rounded-pill">3</span> công trình đang thực hiện</p>
+<% } %>
+
+
+
+<h4>Theo dõi
+	<button id="add-chart" type="button" class="btn btn-sm btn-secondary" data-bs-toggle="collapse" href="#chart-add-form"><i class="fas fa-plus"></i></button>
+</h4>
+
+<div id="chart-add-form" class="row collapse">
+	<div class="mb-2 col-md-10 col-lg-8">
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">Thêm mục theo dõi</h5>
+
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--title">Tiêu đề:</label>
+					<input type="text" class="form-control form-control-sm" id="chart-add-form--title" name="chart-add-form--title" value="" placeholder="(Để trống dùng tiêu đề mặc định)">
+				</div>
+		
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--type">Loại:</label>
+					<select class="form-select form-select-sm" id="chart-add-form--type" name="chart-add-form--type">
+						<option value="<%= project.USER_CHART_TYPES.CURRENT_MONTH %>">Thực hiện trong tháng</option>
+						<option value="<%= project.USER_CHART_TYPES.CURRENT_YEAR %>">Thực hiện trong năm</option>
+					</select>
+				</div>
+		
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--item">Chỉ tiêu:</label>
+					<select class="form-select form-select-sm" id="chart-add-form--item" name="chart-add-form--item">
+					</select>
+				</div>
+		
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--global-plan">Kế hoạch tham chiếu:</label>
+					<select class="form-select form-select-sm" id="chart-add-form--global-plan" name="chart-add-form--global-plan">
+						<% for (const e of globalPlanList) { %>
+							<option value="<%= e.id %>"><%= e.name %></option>
+						<% } %>
+					</select>
+				</div>
+		
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--project">Công trình:</label>
+					<select class="form-select form-select-sm" id="chart-add-form--project" name="chart-add-form--project">
+						<option>(Toàn bộ)</option>
+					</select>
+				</div>
+		
+				<div class="mb-2">
+					<label class="form-label" for="chart-add-form--executor">Phân xưởng:</label>
+					<select class="form-select form-select-sm" id="chart-add-form--executor" name="chart-add-form--executor">
+						<option>(Toàn bộ)</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="card-footer">
+				<button class="btn btn-sm btn-primary" id="chart-add-form--add">Thêm</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="row" id="charts-container"></div>
+
+<div class="alert alert-warning" id="charts-empty">Chưa có biểu đồ theo dõi nào, ấn nút <button class="btn btn-sm btn-secondary"><i class="fas fa-plus"></i></button> để thêm.</div>
+
+<style>
+.chart .card-title .fas {
+	color: #aaa;
+	cursor: pointer;
+	margin-left: 5px;
+}
+
+#charts-empty {
+	display: none;
+}
+#charts-container:empty + #charts-empty {
+	display: block;
+}
+</style>
+
+<script src="<%= utils.makeUrl('/lib/Chart.bundle.min.js') %>"></script>
+
+<script>
+
+const prjStructure = JSON.parse('<%- JSON.stringify(prjStructure) %>');
+const projectList = JSON.parse('<%- JSON.stringify(projectList) %>');
+const executorList = JSON.parse('<%- JSON.stringify(executorList) %>');
+const chartList = JSON.parse('<%- JSON.stringify(chartList) %>');
+
+function RenderChartBox(inf) {
+	const title = function() {
+		if (inf.title) return inf.title;
+
+		let title = null;
+		if (inf.type == <%= project.USER_CHART_TYPES.CURRENT_MONTH %>) title = 'Tháng: ';
+		else if (inf.type == <%= project.USER_CHART_TYPES.CURRENT_YEAR %>) title = 'Năm: ';
+
+		const itemElem = prjStructure.find(e => e.id == inf.itemId);
+		title += itemElem ? itemElem.name : '(Không tên)';
+
+		const projectElem = projectList.find(e => e.id == inf.project);
+		title += projectElem ? ` - ${projectElem.name}` : '';
+
+		const executorElem = executorList.find(e => e.id == inf.executor);
+		title += executorElem ? ` - ${executorElem.name}` : '';
+
+		return title;
+	}();
+
+	const chart = $(`<div class="chart col-xl-4 col-md-6 mb-2" data-chart-id="${inf.id}">
+		<div class="card" id="chart-${inf.id}">
+			<div class="card-body">
+				<h6 class="card-title">
+					<i class="fas fa-xs fa-times float-end" data-bs-toggle="tooltip" title="Xoá"></i>
+					<i class="fas fa-xs fa-sync-alt float-end" data-bs-toggle="tooltip" title="Tải lại dữ liệu"></i>
+					<i class="fas fa-xs fa-expand float-end" data-bs-toggle="tooltip" title="Kích thước"></i>
+					${title}
+				</h6>
+				<canvas style="width:100%; height:250px"></canvas>
+			</div>
+		</div>
+	</div>`);
+
+	chart.prependTo('#charts-container');
+	RefreshChart(inf.id);
+}
+
+function RefreshChart(id) {
+	const canvas = $(`#chart-${id}`).find('canvas');
+	kajax({
+		url: "<%= utils.makeUrl('/user-chart/load-data') %>",
+		data: {
+			chartId: id
+		}
+	}, function(data) {
+		const ctx = canvas[0].getContext('2d');
+		new Chart(ctx, {
+			type: 'line',
+			data: data.chart,
+			options: {
+				legend: {
+					position: 'bottom',
+					boxWidth: 1
+				}
+			}
+		});
+	});
+}
+
+$(function() {
+	chartList.forEach(e => RenderChartBox(e));
+
+	$(document).on('click', '.chart .fa-times', evt => {
+		const chart = $(evt.target).closest('.chart');
+		kajax({
+			url: "<%= utils.makeUrl('/user-chart/delete') %>",
+			data: {
+				chartId: chart.data('chart-id')
+			}
+		}, function(data) {
+			chart.find('[data-bs-toggle=tooltip]').tooltip('dispose');
+			chart.remove();
+		});
+	});
+
+	$(document).on('click', '.chart .fa-sync-alt', evt => {
+		const chart = $(evt.target).closest('.chart');
+		RefreshChart(chart.data('chart-id'));
+	});
+
+	$(document).on('click', '.chart .fa-expand', evt => {
+		const chart = $(evt.target).closest('.chart');
+		chart.toggleClass('col-12').toggleClass('col-xl-4 col-md-6');
+		if (chart.hasClass('col-12')) ScrollTo(chart.offset().top);
+	});
+
+	$('#chart-add-form--add').click(evt => {
+		const inf = {
+			title: $('#chart-add-form--title').val(),
+			type: $('#chart-add-form--type').val(),
+			itemId: $('#chart-add-form--item').val(),
+			globalPlan: $('#chart-add-form--global-plan').val(),
+			project: $('#chart-add-form--project').val(),
+			executor: $('#chart-add-form--executor').val()
+		};
+
+		if (!inf.title) inf.title = null;
+		if (!inf.type) return;
+		if (!inf.itemId) return;
+		if (!inf.globalPlan) return;
+
+		kajax({
+			url: "<%= utils.makeUrl('/user-chart/add') %>",
+			data: inf
+		}, function(data) {
+			inf.id = data.id;
+			chartList.push(inf);
+			RenderChartBox(inf);
+		});
+	});
+
+	const chartAddFormItem = $('#chart-add-form--item');
+	prjStructure.forEach(e => {
+		if (!e.removed) {
+			const title = Array(parseInt(e.level)).join('&nbsp;&nbsp;&nbsp;') + e.name;
+			chartAddFormItem.append(`<option value="${e.id}">${title}</option>`);
+		}
+	});
+
+	const chartAddFormProject = $('#chart-add-form--project');
+	projectList.forEach(e => {
+		chartAddFormProject.append(`<option value="${e.id}">${e.name}</option>`);
+	});
+
+	const chartAddFormExecutor = $('#chart-add-form--executor');
+	executorList.forEach(e => {
+		chartAddFormExecutor.append(`<option value="${e.id}">${e.name}</option>`);
+	});
+});
+</script>

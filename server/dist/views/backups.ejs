@@ -1,0 +1,71 @@
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<button class="btn btn-secondary" onclick="CreateBackup()">
+			<i class="fas fa-plus-circle"></i> Tạo bản sao lưu mới
+        </button>
+	</div>
+</div>
+
+
+<% if (backups.length == 0) { %>
+	<p class="alert alert-warning">Chưa có bản sao lưu nào.</p>
+<% } else { %>
+	<div class="list-group">
+		<% for (const item of backups) {
+            %>
+			<div class="list-group-item list-group-item-action flex-column align-items-start">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1"><%= item.timestamp.format('YYYY-MM-DD HH:mm:ss') %>
+						<a class="btn btn-sm btn-success" href="<%= utils.makeUrl(`/backups/${item.id}/download`) %>" data-bs-toggle="tooltip" title="Tải về"><i class="fas fa-download"></i></a>
+                        <button class="btn btn-sm btn-warning" onclick="RestoreBackup('<%= item.id %>')" data-bs-toggle="tooltip" title="Khôi phục"><i class="fas fa-history"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="DeleteBackup('<%= item.id %>')" data-bs-toggle="tooltip" title="Xoá"><i class="fas fa-trash"></i></button>
+					</h5>
+				</div>
+			</div>
+		<% } %>
+	</div>
+<% } %>
+
+
+<script>
+
+function CreateBackup() {
+	ConfirmDialog('Bạn muốn tạo bản sao lưu mới?', yes => {
+		if (!yes) return;
+
+		notify('Đang sao lưu...', {autoDismiss: false});
+
+		kajax({
+			method: 'get',
+			url: `<%= utils.makeUrl('/backups/create') %>`,
+			timeout: 0
+		}, () => location.reload(true));
+	});
+}
+
+function RestoreBackup(id) {
+	ConfirmDialog('Bạn muốn khôi phục lại bản sao này?', yes => {
+		if (!yes) return;
+
+		notify('Đang khôi phục bản sao...', {autoDismiss: false});
+
+		kajax({
+			method: 'get',
+			url: `<%= utils.makeUrl('/backups') %>/${id}/restore`,
+			timeout: 0
+		}, () => location.reload(true));
+	});
+}
+
+function DeleteBackup(id) {
+	ConfirmDialog('Bạn chắc chắn muốn xoá bản sao lưu này?', yes => {
+		if (!yes) return;
+
+		kajax({
+			method: 'post',
+			url: `<%= utils.makeUrl('/backups') %>/${id}/delete`
+		}, () => location.reload(true));
+	});
+}
+
+</script>

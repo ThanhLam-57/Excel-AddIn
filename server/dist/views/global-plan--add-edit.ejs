@@ -1,0 +1,75 @@
+
+<%- include('inc/print-error-list', { errors }) %>
+
+<div class="row">
+	<form id="the-form" method='post' class="col-md-8 col-lg-6">
+		<input type="hidden" name="submitted" value="1" />
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="name">Tên kế hoạch:</label>
+			<input type="text" class="form-control" id="name" name="name" value="<%= params.name || '' %>" autofocus />
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="description">Mô tả:</label>
+			<input id="description" type="text" class="form-control" name="description" value="<%= params.description ? params.description : '' %>" autofocus />
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold" for="year">Năm thực hiện:</label>
+			<input type="number" min="2000" max="2100" step="1" class="form-control" id="year" name="year" value="<%= params.year || '' %>" />
+		</div>
+
+		<% if (!edit) { %>
+			<div class="mb-3">
+				<div class="form-check form-switch" for="duplicateFromPlan">
+					<input type="checkbox" class="form-check-input" id="duplicateFrom" name="duplicateFrom" value="ON"
+						onchange="onDuplicateFromChange(this)" <%= params.duplicateFrom ? ' checked' : '' %> />
+					<label class="form-check-label form-label fw-bold" for="duplicateFrom">Sao chép từ kế hoạch đã có:</label>
+				</div>
+
+				<select class="form-select" id="duplicateFromPlan" name="duplicateFromPlan" <%= params.duplicateFrom ? '' : ' disabled' %> >
+					<% if (globalPlans.length == 0) { %>
+						<option disabled>(Không có kế hoạch nào)</option>
+					<% } else {
+						let currentYear = null;
+						for (const item of globalPlans) {
+							if (item['year'] != currentYear) {
+								if (currentYear != null) { %>
+									</optgroup>
+								<% }
+				
+								%>
+								<optgroup label="<%= item['year'] %>">
+								<%
+				
+								currentYear = item['year'];
+							}
+					
+							%>
+							<option value="<%= item['id'] %>" <%= item['id'] == params.duplicateFromPlan ? 'selected' : '' %>>
+								<%= item['name'] %></option>
+							<%
+						} %>
+	
+						</optgroup>
+					<% } %>
+				</select>
+			</div>
+
+			<script>
+			function onDuplicateFromChange(ckb) {
+				if (ckb.checked)
+					$('#duplicateFromPlan').removeAttr('disabled');
+				else $('#duplicateFromPlan').attr('disabled', true);
+			}
+			</script>
+		<% } %>
+
+		<div class="mb-3">
+			<button type="submit" class="btn btn-primary"><%= edit ? 'Cập nhật' : 'Tạo kế hoạch' %></button>
+			<button type="button" class="btn btn-secondary" onclick="javascript:history.go(-1)">Quay về</button>
+		</div>
+	</form>
+</div>
+

@@ -1,0 +1,14 @@
+
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group mb-2">
+		<a class="btn btn-secondary" href="<%= utils.makeUrl('/division/add') %>">
+			<i class="fas fa-plus-circle"></i> Tạo mới
+		</a>
+	</div>
+</div>
+
+<h4 class="pt-4">Các bộ phận hành chính</h4>
+<%- include('inc/print-division-list', { list: administrationDivisions }) %>
+
+<h4 class="pt-4">Các phân xưởng</h4>
+<%- include('inc/print-division-list', { list: excutionDivisions }) %>
