@@ -21,9 +21,9 @@ module.exports = {
 
 	database: {
 		host: 'localhost',
-		schema: 'klmo',
-		username: 'klmo',
-		password: 'klmo',
+		schema: 'ntlam_001',
+		username: 'root',
+		password: '12345678',
 	},
 
 	rootUserId: 1,
