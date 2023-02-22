@@ -15,6 +15,7 @@ const SPECIAL_COLUMN = {
     ITEM_LEVEL:         { value: '{level}', name: 'Thứ tự chỉ tiêu' },
     ITEM_NAME:          { value: '{name}', name: 'Tên chỉ tiêu' },
     ITEM_UNIT:          { value: '{unit}', name: 'Đơn vị chỉ tiêu' },
+    ITEM_CURRENCY:          { value: '{currency}', name: 'Đơn vị tiền tệ' },
     ITEM_VALUE_TYPE:    { value: '{value_type}', name: 'Cách tính chỉ tiêu' }
 };
 
@@ -66,9 +67,7 @@ function excelApiSupported(version) {
 // polyfill for API <= 1.7
 function getRangeByIndexes(worksheet, startRow, startCol, rowCount, colCount) {
     if (excelApiSupported('1.7')) return worksheet.getRangeByIndexes(startRow, startCol, rowCount, colCount);
-
     const rangeName = `${colIdx2Name(startCol)}${startRow + 1}:${colIdx2Name(startCol + colCount - 1)}${startRow + rowCount}`;
-    console.log(rangeName)
     return worksheet.getRange(rangeName);
 }
 
@@ -297,7 +296,7 @@ function getGeneralInfo(what, fresh) {
         if (what.length == 0) return resolve(generalInfoCache);
 
         kajax({
-            method: 'post',
+            method: 'post', 
             url: _UrlBase + '/excel/pull/general-info',
             data: {
                 projectStructure: what.includes('projectStructure'),
@@ -353,21 +352,28 @@ async function updateInfoBar() {
     if (sheetType == null) return setInfoBarContent('Trang tính chưa khởi tạo.');
 
     const content = [];
-
+    console.log("vào");
     if (sheetType == SHEET_TYPE.KE_HOACH) {
         const {globalPlans} = await getGeneralInfo(['globalPlans'], false);
         const planInfo = globalPlans.find(e => e.id == planId);
         content.push(`Bảng dữ liệu kế hoạch${planInfo ? `: ${planInfo.name}` : ''}${sheetTransposed ? ' (ngang)' : ''}.`);
-    } else {  
+    } 
+    else if (sheetType == SHEET_TYPE.KE_HOACH_CHI_TIEU) {
+        const {globalPlans} = await getGeneralInfo(['globalPlans'], false);
+        const planInfo = globalPlans.find(e => e.id == planId);
+        content.push(`Bảng dữ liệu kế hoạch chi tiêu${planInfo ? `: ${planInfo.name}` : ''}${sheetTransposed ? ' (ngang)' : ''}.`);
+    }
+    else {  
         content.push({
             [SHEET_TYPE.THUC_HIEN]: 'Bảng dữ liệu thực hiện',
+            [SHEET_TYPE.THUC_HIEN_CHI_TIEU]: 'Bảng dữ liệu thực hiện chi tiêu',
             [SHEET_TYPE.KIEM_TRA_KCS]: 'Bảng dữ liệu kiểm tra KCS',
             [SHEET_TYPE.KIEM_TRA_KY_THUAT]: 'Bảng dữ liệu kiểm tra kỹ thuật',
             [SHEET_TYPE.CAU_TRUC_BANG]: 'Bảng định nghĩa cấu trúc chỉ tiêu',
             [SHEET_TYPE.TONG_HOP]: 'Bảng báo cáo tổng hợp'
         }[sheetType] + `${sheetTransposed ? ' (ngang)' : ''}.`);
     }
-
+    console.log(content);
     Excel.run(async context => {
         const worksheet = context.workbook.worksheets.getActiveWorksheet();
         const selRange = context.workbook.getSelectedRange().load('columnIndex, rowIndex, isEntireRow, isEntireColumn');
@@ -418,11 +424,11 @@ async function updateInfoBar() {
                             if (planInfo) pieces.push(planInfo.name);
                         }
 
-                        const dateFormat = info.dataType == SHEET_TYPE.KE_HOACH ? 'MM/YYYY' : 'DD/MM/YYYY';
+                        const dateFormat = info.dataType == SHEET_TYPE.KE_HOACH || info.dataType == SHEET_TYPE.KE_HOACH_CHI_TIEU ? 'MM/YYYY' : 'DD/MM/YYYY';
                         pieces.push(info.beginDate.format(dateFormat) + (info.beginDate.isSame(info.endDate) ? '' : '-' + info.endDate.format(dateFormat)));
                         
                     } else {
-                        pieces.push(info.date.format(sheetType == SHEET_TYPE.KE_HOACH ? 'MM/YYYY' : 'DD/MM/YYYY'));
+                        pieces.push(info.date.format(sheetType == SHEET_TYPE.KE_HOACH || sheetType == SHEET_TYPE.KE_HOACH_CHI_TIEU ? 'MM/YYYY' : 'DD/MM/YYYY'));
                     }
 
                     content.push(`- Cột: ${pieces.join(', ')}.`);
@@ -446,7 +452,7 @@ async function updateInfoBar() {
                 }
             }
         }
-
+        console.log("ra");
         setInfoBarContent(content.map(e => `<p>${e}</p>`).join(''));
     });
 }
@@ -458,7 +464,9 @@ async function updateGUI() {
     let klass = 'st-none';
     if (sheetType == SHEET_TYPE.CAU_TRUC_BANG) klass = 'st-cau-truc';
     else if (sheetType == SHEET_TYPE.KE_HOACH) klass = 'st-ke-hoach';
+    else if (sheetType == SHEET_TYPE.KE_HOACH_CHI_TIEU) klass = 'st-ke-hoach-chi-tieu';
     else if (sheetType == SHEET_TYPE.THUC_HIEN) klass = 'st-thuc-hien';
+    else if (sheetType == SHEET_TYPE.THUC_HIEN_CHI_TIEU) klass = 'st-thuc-hien-chi-tieu';
     else if (sheetType == SHEET_TYPE.KIEM_TRA_KCS) klass = 'st-kiem-tra-kcs';
     else if (sheetType == SHEET_TYPE.KIEM_TRA_KY_THUAT) klass = 'st-kiem-tra-kt';
     else if (sheetType == SHEET_TYPE.TONG_HOP) klass = 'st-tong-hop';
@@ -767,8 +775,16 @@ async function initSheet(sheetType, sheetTransposed, planId, initStructure) {
             const wholerange = worksheet.getRange();
             wholerange.clear();
  
-            const infoRowValues = [SPECIAL_COLUMN.INFO.value, SPECIAL_COLUMN.ITEM_LEVEL.value, SPECIAL_COLUMN.ITEM_NAME.value, SPECIAL_COLUMN.ITEM_UNIT.value];
-            const headerTitles = [IGNORED_ROW_VALUE, 'STT', 'Tên chỉ tiêu', 'Đơn vị'];
+            var infoRowValues = [SPECIAL_COLUMN.INFO.value, SPECIAL_COLUMN.ITEM_LEVEL.value, SPECIAL_COLUMN.ITEM_NAME.value, SPECIAL_COLUMN.ITEM_UNIT.value];
+            
+            var headerTitles = 0;
+            if(sheetType == 5 || sheetType == 6){
+                console.log(SPECIAL_COLUMN.ITEM_CURRENCY.value);
+                infoRowValues = [SPECIAL_COLUMN.INFO.value, SPECIAL_COLUMN.ITEM_LEVEL.value, SPECIAL_COLUMN.ITEM_NAME.value, SPECIAL_COLUMN.ITEM_CURRENCY.value];
+                headerTitles = [IGNORED_ROW_VALUE, 'STT', 'Tên chỉ tiêu', 'Tiền tệ'];
+            } else {
+                headerTitles = [IGNORED_ROW_VALUE, 'STT', 'Tên chỉ tiêu', 'Đơn vị'];
+            }
             if (sheetType == SHEET_TYPE.CAU_TRUC_BANG) {
                 infoRowValues.push(SPECIAL_COLUMN.ITEM_VALUE_TYPE.value);
                 headerTitles.push('Cách tính');
@@ -784,7 +800,7 @@ async function initSheet(sheetType, sheetTransposed, planId, initStructure) {
             headerRange.format.font.bold = true;
 
             structureActive.forEach((row, i) => {
-                const rowData = [encodeRowInfo(sheetType, row), '', row.name, row.unit];
+                const rowData = (sheetType == 5 || sheetType == 6) ? [encodeRowInfo(sheetType, row), '', row.name, row.currency] : [encodeRowInfo(sheetType, row), '', row.name, row.unit];
                 if (sheetType == SHEET_TYPE.CAU_TRUC_BANG) rowData.push(row.value_type);
 
                 const rowRange = getRangeByIndexes(worksheet, firstDataRow + i, 0, 1, numCols);
@@ -1139,12 +1155,13 @@ async function commitData(sheetType, sheetTransposed, planId, rowIndex, columnIn
     const {projectStructure} = await getGeneralInfo(['projectStructure'], true);
 
     Excel.run(async context => {
+        console.log("vào commitData");
         const worksheet = context.workbook.worksheets.getActiveWorksheet();
         const infoRowRange = getRangeByIndexes(worksheet, 0, columnIndex, 1, columnCount).load('values');
         const infoColRange = getRangeByIndexes(worksheet, rowIndex, specialCols[SPECIAL_COLUMN.INFO.value], rowCount, 1).load('values');
         const valueRange = getRangeByIndexes(worksheet, rowIndex, columnIndex, rowCount, columnCount).load('values');
         await context.sync();
-
+        console.log(worksheet);
         const colsData = [];
         for (let colIdx = 0; colIdx < columnCount; colIdx++) {
             const info = decodeColInfo(sheetType, infoRowRange.values[0][colIdx]);
@@ -1162,7 +1179,7 @@ async function commitData(sheetType, sheetTransposed, planId, rowIndex, columnIn
             });
         }
 
-        if (colsData.length == 0) return notify('Vùng chọn không có cột dữ liệu nhập nào.');
+        if (colsData.length == 0) return notify('Vùng chọn không có cột dữ liệu.');
 
         const userInputValueTypeCode = valueTypeName2Code(DATA_ITEM_VALUE_TYPE.USER_INPUT);
         for (let i = 0; i < rowCount; i++) {
@@ -1180,8 +1197,8 @@ async function commitData(sheetType, sheetTransposed, planId, rowIndex, columnIn
             });
         }
 
-        if (colsData[0].data.length == 0) return notify('Vùng chọn không có hàng dữ liệu nhập nào.');
-
+        if (colsData[0].data.length == 0) return notify('Vùng chọn không có hàng dữ liệu nhập nào ABCS.');
+        console.log("abcs");
         kajax({
             method: 'post',
             url: _UrlBase + '/excel/commit/data',
@@ -1220,7 +1237,9 @@ async function OnInitSheet() {
                     <select class="form-select" id="modal--sheet-type">
                         <optgroup label="Nhập dữ liệu">
                             ${USER_PERMISSIONS.includes('perm_ky_thuat') ? `<option value="${SHEET_TYPE.KE_HOACH}">Bảng dữ liệu kế hoạch</option>` : ''}
+                            ${USER_PERMISSIONS.includes('perm_ky_thuat') ? `<option value="${SHEET_TYPE.KE_HOACH_CHI_TIEU}">Bảng dữ liệu kế hoạch chi tiêu</option>` : ''}
                             ${USER_PERMISSIONS.includes('perm_phan_xuong') ? `<option value="${SHEET_TYPE.THUC_HIEN}">Bảng dữ liệu thực hiện</option>` : ''}
+                            ${USER_PERMISSIONS.includes('perm_phan_xuong') ? `<option value="${SHEET_TYPE.THUC_HIEN_CHI_TIEU}">Bảng dữ liệu thực hiện chi tiêu</option>` : ''}
                             ${USER_PERMISSIONS.includes('perm_kcs') ? `<option value="${SHEET_TYPE.KIEM_TRA_KCS}">Bảng dữ liệu kiểm tra KCS</option>` : ''}
                             ${USER_PERMISSIONS.includes('perm_ky_thuat') ? `<option value="${SHEET_TYPE.KIEM_TRA_KY_THUAT}">Bảng dữ liệu kiểm tra kỹ thuật</option>` : ''}
                         </optgroup>
@@ -1258,9 +1277,10 @@ async function OnInitSheet() {
                 //    <label class="form-check-label" for="modal--sheet-transposed">Xoay ngang bảng</label>
                 //</div>`,
             onOk: () => {
+                console.log("vào");
                 const sheetType = dataTypeSel.val();
                 const sheetTransposed = false; // sheetTransposedChk.is(':checked');
-                const planId = (sheetType == SHEET_TYPE.KE_HOACH ? globalPlanSel.val() : null);
+                const planId = (sheetType == SHEET_TYPE.KE_HOACH || sheetType == SHEET_TYPE.KE_HOACH_CHI_TIEU ? globalPlanSel.val() : null);
                 const initStructure = initStructureSel.val();
 
                 if (sheetType == null) return notify('Chưa chọn loại trang tính.');
@@ -1278,7 +1298,7 @@ async function OnInitSheet() {
         const sheetTransposedChk = dlg.dom.find('#modal--sheet-transposed');
 
         const onDataTypeChange = () => {
-            globalPlanSel.parent().toggleClass('d-none', dataTypeSel.val() != SHEET_TYPE.KE_HOACH);
+            globalPlanSel.parent().toggleClass('d-none', dataTypeSel.val() != SHEET_TYPE.KE_HOACH && dataTypeSel.val() != SHEET_TYPE.KE_HOACH_CHI_TIEU );
         };
         onDataTypeChange();
         dataTypeSel.change(onDataTypeChange);
@@ -1296,7 +1316,6 @@ async function OnInitSheet() {
 
 async function initColumns(context, sheetType, sheetTransposed, planId, dataType, globalPlan, usedRangeProps, selRangeProps, generalInfo) {
     const worksheet = context.workbook.worksheets.getActiveWorksheet();
-
     const infoRowRange = getRangeByIndexes(worksheet, 0, selRangeProps.columnIndex, 1, selRangeProps.columnCount).load('values');
     await context.sync();
 
@@ -1308,7 +1327,7 @@ async function initColumns(context, sheetType, sheetTransposed, planId, dataType
         if (initInfo) break;
     }
     
-    const monthDate = (dataType == DATA_GROUP_TYPES.KE_HOACH);
+    const monthDate = (dataType == DATA_GROUP_TYPES.KE_HOACH || dataType == DATA_GROUP_TYPES.KE_HOACH_CHI_TIEU);
     const dateFormat = (monthDate ? 'MM/YYYY' : 'DD/MM/YYYY');
 
     const dlg = showPaneDialog({
@@ -1462,6 +1481,10 @@ async function OnInitColumns() {
         const usedRangeProps = pickObjProps(usedRange, ['rowIndex', 'rowCount']);
         if (sheetType != SHEET_TYPE.TONG_HOP) return initColumns(context, sheetType, sheetTransposed, planId, sheetType, null, usedRangeProps, selRangeProps, generalInfo);
 
+        const monthDate = (sheetType == SHEET_TYPE.TONG_HOP);
+        const dateFormat = (monthDate ? 'MM/YYYY' : 'DD/MM/YYYY');
+        var initInfo = null;
+
         const dlg = showPaneDialog({
             title: 'Khởi tạo cột',
             content: `<div class="mb-3">
@@ -1479,14 +1502,27 @@ async function OnInitColumns() {
                     <select class="form-select" id="modal--global-plan">
                         ${globalPlans2SelectOptions(generalInfo.globalPlans, null)}
                     </select>
-                </div>`,
+                </div>
+                
+                ${sheetType == SHEET_TYPE.TONG_HOP ? `<div class="mb-3">
+                    <label class="form-label" for="modal--date-sum">Thời gian bắt đầu (tháng):</label>
+                    <input type="text" class="form-control" id="modal--date-sum" data-provide="datepicker" data-date-type="month"
+                    value="02/2023" autocomplete="off" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="modal--date-sum">Thời gian kết thúc (tháng):</label>
+                    <input type="text" class="form-control" id="modal--date-sum" data-provide="datepicker" data-date-type="month"
+                    value="02/2023" autocomplete="off" />
+                </div>` : ""}`
+                ,
             onOk: () => {
                 const dataType = dataTypeSel.val();
                 const planId = (dataType == DATA_GROUP_TYPES.KE_HOACH ? globalPlanSel.val() : null);
-
+                
                 if (dataType == null) return notify('Chưa chọn loại dữ liệu.');
                 if (dataType == DATA_GROUP_TYPES.KE_HOACH && planId == null) return notify('Chưa chọn kế hoạch.');
-
+                
                 dlg.modal.hide();
 
                 Excel.run(async context => {
@@ -1494,6 +1530,18 @@ async function OnInitColumns() {
                 });
             }
         });
+
+        dlg.dom.find('input[data-provide="datepicker"]').datepicker({
+            autoclose: true,
+            assumeNearbyYear: true,
+            format: monthDate ? 'mm/yyyy' : 'dd/mm/yyyy',
+            language: "vi",
+            orientation: "bottom",
+            todayHighlight: true,
+            disableTouchKeyboard: true,
+            minViewMode: monthDate ? 1 : 0,
+            zIndexOffset: 1000
+        }); 
 
         const dataTypeSel = dlg.dom.find('#modal--data-type');
         const globalPlanSel = dlg.dom.find('#modal--global-plan');
@@ -1862,7 +1910,6 @@ async function OnCommitData() {
         const selRange = context.workbook.getSelectedRange().load('rowIndex, columnIndex, rowCount, columnCount, isEntireRow, isEntireColumn');
         const usedRange = worksheet.getUsedRange().load('rowIndex, columnIndex, rowCount, columnCount');
         await context.sync();
-
         let {rowIndex, columnIndex, rowCount, columnCount, isEntireRow, isEntireColumn} = selRange;
         if (isEntireColumn) {
             rowIndex = usedRange.rowIndex;
@@ -1872,7 +1919,6 @@ async function OnCommitData() {
             columnIndex = usedRange.columnIndex;
             columnCount = usedRange.columnCount;
         }
-
         commitData(sheetType, sheetTransposed, planId, rowIndex, columnIndex, rowCount, columnCount);
     }).catch(err => {
         console.log(err);

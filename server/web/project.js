@@ -16,7 +16,9 @@ const DATA_GROUP_TYPES = {
 	KE_HOACH:			1,
 	THUC_HIEN:			2,
 	KIEM_TRA_KCS:		3,
-	KIEM_TRA_KY_THUAT:	4
+	KIEM_TRA_KY_THUAT:	4,
+	KE_HOACH_CHI_TIEU: 5,
+	THUC_HIEN_CHI_TIEU: 6
 };
 
 const REPORT_TYPES = {
@@ -45,7 +47,7 @@ let prjSumChildrenMap = null;
 
 async function reloadProjectStructure() {
 	try {
-		prjStructure = await database.query('select id, name, unit, value_type, level, removed from project_structure_item order by position');
+		prjStructure = await database.query('select id, name, unit, value_type, level, removed, currency from project_structure_item order by position');
 
 		prjStructureIdMap = new Map();
 		prjStructure.forEach(e => {
