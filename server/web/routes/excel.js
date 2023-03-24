@@ -34,7 +34,7 @@ router.post('/pull/general-info', async (req, res) => {
     const data = {}
 
     if (req.body.projectStructure)
-        data['projectStructure'] = await project.getProjectStructure();
+        data['projectStructure'] = await project.getProjectStructure(req.body.type);
 
     if (req.body.globalPlans)
         data['globalPlans'] = await database.query('select id, name, year from global_plan');

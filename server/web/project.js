@@ -18,7 +18,8 @@ const DATA_GROUP_TYPES = {
 	KIEM_TRA_KCS:		3,
 	KIEM_TRA_KY_THUAT:	4,
 	KE_HOACH_CHI_TIEU: 5,
-	THUC_HIEN_CHI_TIEU: 6
+	THUC_HIEN_CHI_TIEU: 6,
+	KIEM_TRA_CHI_TIEU: 7
 };
 
 const REPORT_TYPES = {
@@ -45,10 +46,15 @@ let prjStructureIdMap = null;
 let prjSumChildrenMap = null;
 
 
-async function reloadProjectStructure() {
+async function reloadProjectStructure(type = 0) {
 	try {
-		prjStructure = await database.query('select id, name, unit, value_type, level, removed, currency from project_structure_item order by position');
-
+		console.log("Lam");
+		let where = ``;
+		if(type != 0){
+			where = ` WHERE id >= 51 AND id < 137 `;
+		}
+		prjStructure = await database.query(`select id, name, unit, value_type, level, removed, currency from project_structure_item ${where} order by position`);
+		console.log(prjStructure);
 		prjStructureIdMap = new Map();
 		prjStructure.forEach(e => {
 			prjStructureIdMap.set(parseInt(e.id), e);
@@ -63,8 +69,9 @@ async function reloadProjectStructure() {
 	}
 }
 
-async function getProjectStructure() {
-	if (!prjStructure) await reloadProjectStructure();
+async function getProjectStructure(type = 0) {
+	//if (!prjStructure) 
+	await reloadProjectStructure(type);
 	return prjStructure;
 }
 
